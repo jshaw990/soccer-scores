@@ -23,7 +23,7 @@ def getRequestFromApi(query, write_to_local = True):
     """
     
     headers = {
-        'x-rapidapi-key': os.getenv('API_KEY'),
+        'x-rapidapi-key': os.getenv('FOOTBALL_API_KEY'),
         'x-rapidapi-host': 'v3.football.api-sports.io'
     }
 
