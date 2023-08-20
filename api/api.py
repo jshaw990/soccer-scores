@@ -1,17 +1,8 @@
+import os
 import requests
+from dotenv import load_dotenv
 
-__BASE_URL__ = 'https://v3.football.api-sports.io/'
-
-API_KEY = ""
-
-headers = {
-  'x-rapidapi-key': API_KEY,
-  'x-rapidapi-host': 'v3.football.api-sports.io'
-}
-
-# response = requests.request("GET", __BASE_URL__, headers=headers, data=payload)
-
-# print(response.text)
+load_dotenv()
 
 def getRequestFromApi(endpoint):
     """
@@ -24,8 +15,13 @@ def getRequestFromApi(endpoint):
         dict : response data in a dictionary
     """
     
+    headers = {
+        'x-rapidapi-key': os.getenv('API_KEY'),
+        'x-rapidapi-host': 'v3.football.api-sports.io'
+    }
+
     data = {}
-    url = __BASE_URL__ + endpoint
+    url = os.getenv('BASE_URL') + endpoint
     
     response = requests.request("GET", url, headers=headers, data=data)
 
