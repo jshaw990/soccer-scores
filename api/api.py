@@ -2,7 +2,7 @@ import requests
 import os
 from dotenv import load_dotenv
 
-from utilities import *
+from utilities import Utilities
 
 load_dotenv()
 
@@ -36,30 +36,31 @@ def getRequestFromApi(query, write_to_local = True):
         return 'An error has occured!'
     
     if write_to_local:
-        writeDataToFile(response.text, f"{query['endpoint']}.txt")
+        Utilities.writeDataToFile(response.text, f"{query['endpoint']}.txt")
     
     return response.json()
 
-def getFixturesForDate(date, getNew = False):
+def getFixturesForDate(date, get_new_data = False):
     """
     Get fixtures for a specific date
 
     Args:
         date(str) : date for fixtures in string format matching YYYY-MM-DD
+        get_new_data(bool) : force query for new data from data-api
     
     Returns:
         dict : a dictionary of fixtures
     """
     request = None
     
-    if checkForCurrentDate(date) | getNew:
+    if get_new_data | Utilities.checkForCurrentDate(date):
         query = {
             'endpoint': 'fixtures',
             'params': '?league=39&season=2023&date=' + date
         }
         request = getRequestFromApi(query)
     else: 
-        request = readDataFromFile('fixtures.txt')
+        request = Utilities.readDataFromFile('fixtures.txt')
     
     print(type(request))
     print(request)
