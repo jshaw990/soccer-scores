@@ -1,15 +1,22 @@
-import os
 import requests
+import os
 from dotenv import load_dotenv
+
+from utilities import *
 
 load_dotenv()
 
-def getRequestFromApi(endpoint):
+# 
+# API-FOOTBAL METHODS
+# 
+
+def getRequestFromApi(query, write_to_local = True):
     """
     Query the BASE_URL for the specifc endpoint
 
     Args: 
-        endpoint(str) : endpoint to query
+        query(dict) : endpoint to query
+        write_to_local(boolean) : should the file be written to local (default = True)
 
     Returns: 
         dict : response data in a dictionary
@@ -21,16 +28,19 @@ def getRequestFromApi(endpoint):
     }
 
     data = {}
-    url = os.getenv('BASE_URL') + endpoint
+    url = os.getenv('BASE_URL') + query['endpoint'] + query['params']
     
-    response = requests.request("GET", url, headers=headers, data=data)
+    response = requests.request("GET", url, headers = headers, data = data)
 
-    if (response.status_code != 200): 
+    if response.status_code != 200: 
         return 'An error has occured!'
+    
+    if write_to_local:
+        writeDataToFile(response.text, f"{query['endpoint']}.txt")
     
     return response.json()
 
-def getFixturesForDate(date):
+def getFixturesForDate(date, getNew = False):
     """
     Get fixtures for a specific date
 
@@ -40,9 +50,16 @@ def getFixturesForDate(date):
     Returns:
         dict : a dictionary of fixtures
     """
-
-    endpoint = 'fixtures?league=39&season=2023&date=' + date
-    request = getRequestFromApi(endpoint)
+    request = None
+    
+    if checkForCurrentDate(date) | getNew:
+        query = {
+            'endpoint': 'fixtures',
+            'params': '?league=39&season=2023&date=' + date
+        }
+        request = getRequestFromApi(query)
+    else: 
+        request = readDataFromFile('fixtures.txt')
     
     print(type(request))
     print(request)
