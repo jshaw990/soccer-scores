@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from utilities import Utilities
-from database import DatabaseConnection
+from database import MongoConnection
 
 load_dotenv()
 
@@ -11,9 +11,9 @@ load_dotenv()
 # API-FOOTBAL METHODS
 # 
 
-def getRequestFromApi(query, write_to_db = True, write_to_local = True):
+def get_request_from_football(query, write_to_db = True, write_to_local = True):
     """
-    Query the BASE_URL for the specifc endpoint
+    Query the FOOTBALL_URL for the specifc endpoint
 
     Args: 
         query(dict) : endpoint to query
@@ -30,7 +30,7 @@ def getRequestFromApi(query, write_to_db = True, write_to_local = True):
     }
 
     data = {}
-    url = os.getenv('BASE_URL') + query['endpoint'] + query['params']
+    url = os.getenv('FOOTBALL_URL') + query['endpoint'] + query['params']
     
     response = requests.request("GET", url, headers = headers, data = data)
 
@@ -39,11 +39,11 @@ def getRequestFromApi(query, write_to_db = True, write_to_local = True):
     if response.status_code != 200: 
         return 'An error has occured!'
     
-    # if write_to_db: 
-    #     DatabaseConnection.write_to_db(response.json()['response'], collection = query['endpoint'])
+    if write_to_db: 
+        MongoConnection.write_to_db(response.json()['response'], collection = query['endpoint'])
     
     if write_to_local:
-        Utilities.writeDataToFile(response.text, f"{query['endpoint']}.txt")
+        Utilities.write_data_to_file(response.text, f"{query['endpoint']}.txt")
     
     return response.json()
 
@@ -60,18 +60,18 @@ def getFixturesForDate(date, get_new_data = False):
     """
     request = None
     
-    if get_new_data | Utilities.checkForCurrentDate(date):
+    if get_new_data | Utilities.check_for_current_date(date):
         query = {
             'endpoint': 'fixtures',
-            'params': '?league=39&season=2023&date=' + date
+            'params': f'?league=39&season=2023&date={date}'
         }
-        request = getRequestFromApi(query)
+        request = get_request_from_football(query)
     else: 
-        request = Utilities.readDataFromFile('fixtures.txt')
-        DatabaseConnection.write_to_db(request['response'], collection = 'fixtures')
+        # request = Utilities.readDataFromFile('fixtures.txt')
+        # MongoConnection.write_to_db(request['response'], collection = 'fixtures')
+        request = MongoConnection.get_collection_from_db('fixtures')
     
-    print(type(request))
-    print(request)
+    print(f'Number of fixtures for date {date}: {len(request)}')
 
 def getTeamsForLeague(league, get_new_data = False):
     """
@@ -90,14 +90,29 @@ def getTeamsForLeague(league, get_new_data = False):
             'endpoint': 'teams',
             'params': f'?league={league}&season=2023'
         }
-        request = getRequestFromApi(query)
+        request = get_request_from_football(query)
         
     else: 
-        request = Utilities.readDataFromFile('teams.txt')
-        DatabaseConnection.write_to_db(request['response'], collection = 'team')
+        # request = Utilities.readDataFromFile('teams.txt')
+        # MongoConnection.write_to_db(request['response'], collection = 'team')
+        request = MongoConnection.get_collection_from_db('team')
     
-    print(type(request))
-    print(request)
+    print(f'Number of teams in league {league}: {len(request)}')
 
-getFixturesForDate('2023-08-19', True)
-getTeamsForLeague(39)
+# getFixturesForDate('2023-08-18')
+# getTeamsForLeague(39)
+
+def write_FixturesToDb():
+    request = Utilities.readDataFromFile('fixtures.txt')
+    MongoConnection.write_to_db(request['response'], collection = 'fixtures')
+
+def get_leagues_and_write():
+    query = {
+            'endpoint': 'leagues',
+            'params': ''
+        }
+    
+    request = get_request_from_football(query)
+
+# write_FixturesToDb()
+get_leagues_and_write()

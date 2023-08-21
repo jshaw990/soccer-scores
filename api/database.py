@@ -7,7 +7,7 @@ load_dotenv()
 
 __MONGO_URI__ = f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASSWORD')}@{os.getenv('MONGO_CLUSTER_ADDRESS')}.mongodb.net/?retryWrites=true&w=majority"
 
-class DatabaseConnection: 
+class MongoConnection: 
     def test_db_conntection():
         """
         Test the connection to MongoDB
@@ -26,6 +26,32 @@ class DatabaseConnection:
             print('Pinged success!')
         except Exception as exception:
             raise Exception(f'An error occurred: {exception}')
+        
+    def get_collection_from_db(collection, db = 'testDb'):
+        """
+        Read data from the db collection specified
+
+        Args: 
+            collection(str) : Database collection name
+            db(str) : Database name (default - testDb)
+
+        Returns: 
+            list: data from collection
+        """
+        print(f'Writing data to {db} - {collection}')
+
+        try:
+            data = []
+            client = MongoClient(__MONGO_URI__, server_api=ServerApi('1'))
+            cursor = client[db][collection].find()
+
+            for doc in cursor:
+                data.append(doc)
+
+            return data
+        except Exception as exception:
+            print(exception)
+            raise Exception(f'An error occurred while reading {collection} to database. Error: {exception}')
 
     def write_to_db(data, collection, db = 'testDb'):
         """
@@ -44,10 +70,10 @@ class DatabaseConnection:
             # print(f'data => {data}')
 
             for x in data:
-                # x.update({'_id': x[collection]['id']})
+                x.update({'_id': x['league']['id']})
                 print(f'\nthis is x => {x}')
                 insert_to.update_one(
-                    { '_id': x[collection]['id']},
+                    { '_id': x['league']['id']},
                     { '$set': x},
                     upsert = True
                 )

@@ -6,7 +6,7 @@ class Utilities:
     Utility methods
     """
 
-    def checkForCurrentDate(date_string):
+    def check_for_current_date(date_string):
         """
         Check if provided date_string is today (True), 
 
@@ -42,7 +42,7 @@ class Utilities:
         file = open(f'api/data/{file_name}', 'r')
         return json.loads(file.read())
 
-    def writeDataToFile(data, file_name = 'data.txt'):
+    def write_data_to_file(data, file_name = 'data.txt'):
         """
         Write provided data to a text file
 
