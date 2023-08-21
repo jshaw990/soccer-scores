@@ -27,27 +27,31 @@ class DatabaseConnection:
         except Exception as exception:
             raise Exception(f'An error occurred: {exception}')
 
-    def write_to_db(data, db = 'testDb', collection = 'testCollection1'):
+    def write_to_db(data, collection, db = 'testDb'):
         """
         Write provided data to MongoDB database
 
         Args:
             data(list) : Data in list format to be written to db
+            collection(str) : Database collection
             db(str) : Database name (default - testDb)
-            collection(str) : Database collection (default - testCollection1)
         """
         print(f'Writing data to {db} - {collection}')
         try:
             client = MongoClient(__MONGO_URI__, server_api=ServerApi('1'))
             insert_to = client[db][collection]
 
+            # print(f'data => {data}')
+
             for x in data:
-                x.update({'_id': x['fixture']['id']})
+                # x.update({'_id': x[collection]['id']})
+                print(f'\nthis is x => {x}')
                 insert_to.update_one(
-                    { '_id': x['fixture']['id']},
+                    { '_id': x[collection]['id']},
                     { '$set': x},
                     upsert = True
                 )
         except Exception as exception:
-            raise Exception(f'An error occurred while writing to database. Error: {exception}')
+            print(exception)
+            raise Exception(f'An error occurred while writing {collection} to database. Error: {exception}')
             

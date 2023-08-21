@@ -38,8 +38,8 @@ class Utilities:
         Returns: 
             dict: file's data in a dictionary
         """
-        
-        file = open(f'data/{file_name}', 'r')
+        print(file_name)
+        file = open(f'api/data/{file_name}', 'r')
         return json.loads(file.read())
 
     def writeDataToFile(data, file_name = 'data.txt'):
@@ -51,6 +51,6 @@ class Utilities:
             file_name(str) : file name for the created file (default = 'data.txt')
         """
 
-        file = open(f'data/{file_name}', 'w')
+        file = open(f'api/data/{file_name}', 'w')
         file.write(data)
         file.close()
