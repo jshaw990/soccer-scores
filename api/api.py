@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from utilities import Utilities
+from database import DatabaseConnection
 
 load_dotenv()
 
@@ -36,7 +37,8 @@ def getRequestFromApi(query, write_to_local = True):
         return 'An error has occured!'
     
     if write_to_local:
-        Utilities.writeDataToFile(response.text, f"{query['endpoint']}.txt")
+        # Utilities.writeDataToFile(response.text, f"{query['endpoint']}.txt")
+        DatabaseConnection.write_to_db(response.json()['response'], collection = query['endpoint'])
     
     return response.json()
 
@@ -61,6 +63,7 @@ def getFixturesForDate(date, get_new_data = False):
         request = getRequestFromApi(query)
     else: 
         request = Utilities.readDataFromFile('fixtures.txt')
+        DatabaseConnection.write_to_db(request['response'], collection = 'fixtures')
     
     print(type(request))
     print(request)
