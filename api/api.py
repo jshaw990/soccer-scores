@@ -1,53 +1,8 @@
-import requests
-import os
-from dotenv import load_dotenv
-
 from utilities import Utilities
 from database import MongoConnection
+from football_api import FootballApi
 
-load_dotenv()
-
-# 
-# API-FOOTBAL METHODS
-# 
-
-def get_request_from_football(query, write_to_db = True, write_to_local = True):
-    """
-    Query the FOOTBALL_URL for the specifc endpoint
-
-    Args: 
-        query(dict) : endpoint to query
-        write_to_local(boolean) : should the file be written to local (default = True)
-        write_to_local(boolean) : should the file be written to local (default = True)
-
-    Returns: 
-        dict : response data in a dictionary
-    """
-    
-    headers = {
-        'x-rapidapi-key': os.getenv('FOOTBALL_API_KEY'),
-        'x-rapidapi-host': 'v3.football.api-sports.io'
-    }
-
-    data = {}
-    url = os.getenv('FOOTBALL_URL') + query['endpoint'] + query['params']
-    
-    response = requests.request("GET", url, headers = headers, data = data)
-
-    print(response.text)
-
-    if response.status_code != 200: 
-        return 'An error has occured!'
-    
-    if write_to_db: 
-        MongoConnection.write_to_db(response.json()['response'], collection = query['endpoint'])
-    
-    if write_to_local:
-        Utilities.write_data_to_file(response.text, f"{query['endpoint']}.txt")
-    
-    return response.json()
-
-def getFixturesForDate(date, get_new_data = False):
+def get_fixtures_for_date(date, get_new_data = False):
     """
     Get fixtures for a specific date
 
@@ -58,20 +13,19 @@ def getFixturesForDate(date, get_new_data = False):
     Returns:
         dict : a dictionary of fixtures
     """
-    request = None
+    response = None
     
     if get_new_data | Utilities.check_for_current_date(date):
         query = {
             'endpoint': 'fixtures',
             'params': f'?league=39&season=2023&date={date}'
         }
-        request = get_request_from_football(query)
+        response = FootballApi.get_request(query)
     else: 
-        # request = Utilities.readDataFromFile('fixtures.txt')
-        # MongoConnection.write_to_db(request['response'], collection = 'fixtures')
-        request = MongoConnection.get_collection_from_db('fixtures')
+        response = MongoConnection.get_collection_from_db('fixtures')
     
-    print(f'Number of fixtures for date {date}: {len(request)}')
+    print(f'Number of fixtures for date {date}: {len(response)}')
+    return response
 
 def getTeamsForLeague(league, get_new_data = False):
     """
@@ -83,27 +37,40 @@ def getTeamsForLeague(league, get_new_data = False):
     Returns:
         dict : a dictionary of teams
     """
-    request = None
+    response = None
     
     if get_new_data:
         query = {
             'endpoint': 'teams',
             'params': f'?league={league}&season=2023'
         }
-        request = get_request_from_football(query)
+        response = FootballApi.get_request(query)
         
     else: 
-        # request = Utilities.readDataFromFile('teams.txt')
-        # MongoConnection.write_to_db(request['response'], collection = 'team')
-        request = MongoConnection.get_collection_from_db('team')
+        response = MongoConnection.get_collection_from_db('team')
     
-    print(f'Number of teams in league {league}: {len(request)}')
+    print(f'Number of teams in league {league}: {len(response)}')
+    return response
 
-# getFixturesForDate('2023-08-18')
-# getTeamsForLeague(39)
+def get_league_table(get_new_data = False):
+    response = None
+
+    if get_new_data:
+        query = {
+            'endpoint': 'standings',
+            'params': f'?league=39&season=2023'
+        }
+        response = FootballApi.get_request(query)
+
+    else:
+        response = MongoConnection.get_collection_from_db('table')
+
+    return response
+
+get_league_table(True)
 
 def write_FixturesToDb():
-    request = Utilities.readDataFromFile('fixtures.txt')
+    request = Utilities.read_data_from_file('fixtures.txt')
     MongoConnection.write_to_db(request['response'], collection = 'fixtures')
 
 def get_leagues_and_write():
@@ -112,7 +79,4 @@ def get_leagues_and_write():
             'params': ''
         }
     
-    request = get_request_from_football(query)
-
-# write_FixturesToDb()
-get_leagues_and_write()
+    response = FootballApi.get_request(query)

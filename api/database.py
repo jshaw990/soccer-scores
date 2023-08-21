@@ -70,10 +70,10 @@ class MongoConnection:
             # print(f'data => {data}')
 
             for x in data:
-                x.update({'_id': x['league']['id']})
+                x.update({'_id': x[collection]['id']})
                 print(f'\nthis is x => {x}')
                 insert_to.update_one(
-                    { '_id': x['league']['id']},
+                    { '_id': x[collection]['id']},
                     { '$set': x},
                     upsert = True
                 )

@@ -28,7 +28,7 @@ class Utilities:
         else:
             raise Exception(f'Date is not valid. Date provided: {date_string}')
 
-    def readDataFromFile(file_name = 'data.txt'):
+    def read_data_from_file(file_name = 'data.txt'):
         """
         Read data from the file_name provided and return it in a dictionary
 
